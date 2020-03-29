@@ -110,6 +110,70 @@ In this way, we will define several environments to provision development, pre-p
 
 ![xlrelease image](img_019.png)
 
+You can use the next yaml file to create this environments
+```
+---
+apiVersion: xl-deploy/v1
+kind: Environments
+spec:
+- directory: Environments/infrastructure-calculator
+  children:
+  - directory: infrastructure-calculator-dev
+    children:
+    - name: infrastructure-calculator-dev-dict
+      type: udm.Dictionary
+      entries:
+        aws_region: eu-west-3
+        environment: dev
+        private_key_path: /home/jcla/.ssh/id_rsa
+        instance_type: t2.micro
+        public_key_path: /home/jcla/.ssh/id_rsa.pub
+    - name: infrastructure-calculator-dev
+      type: udm.Environment
+      members:
+      - Infrastructure/Terraform/terraform-host-dev/calculator-dev
+      dictionaries:
+      - Environments/infrastructure-calculator/infrastructure-calculator-dev/infrastructure-calculator-dev-dict
+  - directory: infrastructure-calculator-pre
+    children:
+    - name: infrastructure-calculator-pre
+      type: udm.Environment
+      members:
+      - Infrastructure/Terraform/terraform-host-dev/calculator-dev
+      dictionaries:
+      - Environments/infrastructure-calculator/infrastructure-calculator-pre/infrastructure-calculator-pre-dict
+    - name: infrastructure-calculator-pre-dict
+      type: udm.Dictionary
+      entries:
+        environment: pre
+        instance_type: t2.medium
+        private_key_path: /home/jcla/.ssh/id_rsa
+        aws_region: eu-west-3
+        public_key_path: /home/jcla/.ssh/id_rsa.pub
+  - directory: infrastructure-calculator-pro
+    children:
+    - name: infrastructure-calculator-pro-dict
+      type: udm.Dictionary
+      entries:
+        private_key_path: /home/jcla/.ssh/id_rsa
+        aws_region: eu-west-3
+        instance_type: t2.large
+        public_key_path: /home/jcla/.ssh/id_rsa.pub
+        environment: pro
+    - name: infrastructure-calculator-pro
+      type: udm.Environment
+      members:
+      - Infrastructure/Terraform/terraform-host-dev/calculator-dev
+      dictionaries:
+      - Environments/infrastructure-calculator/infrastructure-calculator-pro/infrastructure-calculator-pro-dict
+```
+
+Save it as `environments.yaml` and create the resources ...
+
+```
+xl apply -f environments.yaml
+```
+
 # Now what do we get with this approach?
 
 Well, we can use the same version of our infrastructure to provision exactly the same environments in development, pre-production and production.
