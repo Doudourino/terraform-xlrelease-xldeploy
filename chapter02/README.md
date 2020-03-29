@@ -1,4 +1,9 @@
-# ¿Dónde almacenar y ejecutar estas templates?
+# Where to store and execute these templates?
+First, I will need to create infrastructures on Amazon for different applications or projects, therefore, I will have an udm.Application (infrastructure application) for each project that I want to provision. For example, I will have an infrastructure application for the 'calculator' project (what it will actually do is provision the infrastructure for the development, pre-production and production environments for the 'calculator' project), another infrastructure application for the 'petportal' project, etc.
+
+![xlrelease image](img_050.png)
+
+
 Hemos creado tres ficheros, `variables.tf`, `terraform.tf` y `outputs.tf`.
 
 Voy a desplegar estas templates con XL Deploy, la mejor herramienta del mercado para desplegar software. Al utilizar XL Deploy tendremos resueltas muchas de las preguntas que nos hicimos anteriormente.

@@ -1,33 +1,39 @@
 # Terraform templates
-Esto es lo primero que necesitamos.
+This is the first thing we need.
 
-Si empezamos a trabajar con Terraform, pronto descubriremos los módulos y nos daremos cuenta que es la mejor forma de reutilizar nuestro trabajo. A medida que vayamos mejorando nuestros módulos, podremos ir versionándolos y siempre sabremos de forma exacta con qué código fuente estamos creando nuestra infraestructura.
+If we start working with Terraform, we will soon discover the modules and realize that it is the best way to reuse our work. As we improve our modules, we will be able to version them and we will always know exactly what source code we are using to create our infrastructure.
 
-En este tutorial, vamos a utilizar el siguiente módulo:
+![xlrelease image](img_366.png)
 
-https://registry.terraform.io/modules/jclopeza/java-bdd-project/module/2.0.0
+In the modules we will also have variables or input parameters (the inputs) and output variables with information about the infrastructure created (the outputs).
 
-## Módulo `Java Bdd Project`
-Este módulo de Terraform se va a utilizar para proyectos con parte Java (o un frontal ejecutándose en Tomcat en el puerto 8080) y con parte de base de datos.
+Operations teams are probably already working like this, with modules, and this is still going to be like that, it is not necessary for operations teams to change the way they work to manage infrastructure deployments with XL Deploy.
 
-Creará una VPC, con una subred pública y dos instancias EC2. Una de ellas con acceso a los puertos 22 y 8080 (parte front) y la otra con acceso a los puertos 22 y 3306 (parte de base de datos).
+In this tutorial, we are going to use the following module:
 
-Este módulo está parametrizado porque quiero reutilizarlo para provisionar varios entornos. Las variables que acepta se pueden consultar aquí:
+https://registry.terraform.io/modules/jclopeza/java-bdd-project
+
+## `Java Bdd Project` module
+This Terraform module will be used for projects with a Java component (or a front running in Tomcat on port 8080) and with a database component.
+
+It will create a VPC, with a public subnet and two EC2 instances. One of them with access to ports 22 and 8080 (front side) and the other one with access to ports 22 and 3306 (database side).
+
+This module is parameterized because I want to reuse it to provision multiple environments. The variables it accepts can be seen here:
 
 https://registry.terraform.io/modules/jclopeza/java-bdd-project/module/2.0.0?tab=inputs
 
-Y como salida obtendré, entre otras variables, las direcciones IP públicas de las dos instancias EC2 que se han creado.
+And as output I will get, among other variables, the public IP addresses of the two EC2 instances that have been created.
 
 https://registry.terraform.io/modules/jclopeza/java-bdd-project/module/2.0.0?tab=outputs
 
-We assume that these files have been created by the right teams, have been reviewed, approved, versioned and published in the Terraform registry for later use. These modules comply with the best practices and meet the security requirements. They have been created using the corresponding templates in XL Release.
+We assume that these files have been created by the right teams, have been reviewed, approved, versioned and published in the Terraform registry for later use. These modules comply with the best practices and meet the security requirements.
 
-## ¿Cómo usar este módulo?
-Para utilizar este módulo que está publicado en el registry de Terraform, bastarán crear los siguientes templates de Terraform:
+## How to use this module?
+To use this module that is published in the Terraform registry, it will be enough to create the following Terraform templates:
 
-También se pueden crear tres ficheros distintos, uno de ellos con las variables, otro con los outputs, y otro con la llamada al módulo. Quedaría así:
+A file with the input variables
 
-Fichero `variables.tf`
+`variables.tf` file
 ```
 variable "aws_region" {}
 variable "environment" {}
@@ -37,21 +43,9 @@ variable "private_key_path" {}
 variable "project_name" {}
 ```
 
-Fichero `terraform.tf`
-```
-module "java-bdd-project" {
-  source  = "jclopeza/java-bdd-project/module"
-  version = "2.0.0"
-  aws_region = "${var.aws_region}"
-  environment = "${var.environment}"
-  instance_type = "${var.instance_type}"
-  project_name = "${var.project_name}"
-  public_key_path = "${var.public_key_path}"
-  private_key_path = "${var.private_key_path}"
-}
-```
+Another one with the output variables
 
-Fichero `outputs.tf`
+`outputs.tf` file
 ```
 output "public_ip_front" {
   value = "${module.java-bdd-project.public_ip_front}"
@@ -67,4 +61,22 @@ output "private_key_path" {
 }
 ```
 
-Ahora, cómo lanzamos estas templates?, desde qué equipo, con qué parámetros, cómo los gestionamos?
+And another one with the name of the module we want to use, the version and the parameters.
+
+`terraform.tf` file
+```
+module "java-bdd-project" {
+  source  = "jclopeza/java-bdd-project/module"
+  version = "2.0.0"
+  aws_region = "${var.aws_region}"
+  environment = "${var.environment}"
+  instance_type = "${var.instance_type}"
+  project_name = "${var.project_name}"
+  public_key_path = "${var.public_key_path}"
+  private_key_path = "${var.private_key_path}"
+}
+```
+
+Now, how do we launch these templates? From which host, with what parameters, how do we manage them?
+
+Well, we are going to take these files to XL Deploy and we are going to create the necessary parameters to be able to reuse our modules and provision different environments.
