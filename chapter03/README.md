@@ -92,3 +92,30 @@ Save it as `infrastructure.yaml` and create the resources ...
 ```
 xl apply -f infrastructure.yaml
 ```
+
+## Creating the deployment environments
+
+Now we just need to create the deployment environments. We remember that an environment in XL Deploy is made up of a set of infrastructure elements and the necessary configuration for that environment.
+
+In our case, the development environment for the 'calculator' project will be made up of:
+
+1. The terraform client that we created for the development environment
+2. And a dictionary with the values that we want to apply to our parameters for this environment
+
+![xlrelease image](img_018.png)
+
+If we take a look at the content of that dictionary we will see that it is nothing more than a set of key-value pairs that will be passed as a parameter when we execute the 'terraform apply' command.
+
+In this way, we will define several environments to provision development, pre-production and production infrastructures for, in this case, the 'calculator' project.
+
+![xlrelease image](img_019.png)
+
+# Now what do we get with this approach?
+
+Well, we can use the same version of our infrastructure to provision exactly the same environments in development, pre-production and production.
+
+The only difference will be in the values that we have passed to the parameters.
+
+![xlrelease image](img_020.png)
+
+In this case we can see that the hosts we are creating for development and pre-production environments are smaller than the hosts we are creating for production. Except for this difference, the infrastructures created will be exactly the same for the three environments.
