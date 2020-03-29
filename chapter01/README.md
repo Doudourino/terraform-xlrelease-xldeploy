@@ -3,7 +3,7 @@ Esto es lo primero que necesitamos.
 
 Si empezamos a trabajar con Terraform, pronto descubriremos los módulos y nos daremos cuenta que es la mejor forma de reutilizar nuestro trabajo. A medida que vayamos mejorando nuestros módulos, podremos ir versionándolos y siempre sabremos de forma exacta con qué código fuente estamos creando nuestra infraestructura.
 
-En este tutorial vamos a utilizar el siguiente módulo:
+En este tutorial, vamos a utilizar el siguiente módulo:
 
 https://registry.terraform.io/modules/jclopeza/java-bdd-project/module/2.0.0
 
