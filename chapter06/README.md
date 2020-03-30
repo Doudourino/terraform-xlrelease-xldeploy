@@ -35,14 +35,36 @@ ${environment} ${project_name} ${aws_region} ${instance_type} ${private_key_path
 
 ![xlrelease image](img_047.png)
 
-### Paso 2: Validación de entorno en XLD  (Manual)
-Incluímos un paso para que se verifique que se ha creado el entorno de forma correcta en XL Deploy. Esta validación también se podría haber hecho de forma automática.
+*This can also be done using `xl apply -f ...`*
 
-`Environments/infrastructure-${project_name}/infrastructure-${project_name}-${environment}/infrastructure-${project_name}-${environment}`
+### Step 2: Wait for authorization in Service Now (ServiceNow: Wait for Status)
 
-![xlrelease image](img_057.png)
+Now someone has to acces to ServiceNow and approve the change request that we created earlier. This is an easy way to show how to get remote authorizations in our process.
 
-### Paso 3: Validación de solicitud y aprobación del equipo de seguridad (Gate)
-Incluímos una validación adicional que sólo tendrá lugar si el entorno seleccionado es el de producción.
+Here we have:
+* to use the `${sysId-changerequest-snow}` variable in the `Sys Id` field
+* to set the value `state` in the `Status Field` field
+* to set the value `Scheduled` in the `Status to check for` field
 
-![xlrelease image](img_058.png)
+![xlrelease image](img_048.png)
+
+![xlrelease image](img_049.png)
+
+We can complete the `Output properties` but it is not necesary.
+
+### Step 3: Validation of application and approval of the security team (Gate)
+
+We include an additional validation that will only take place if the selected environment is the production one.
+
+![xlrelease image](img_050.png)
+
+### Step 4: Update Jira status of ${issue} (Jira: Update Issue)
+*To define this step, it is necessary to create a Jira Server under 'Settings -> Shared configuration' or under the 'Configuration' tab inside the folder where the template is located.*
+
+Here we update the issue in Jira. This template will be triggered from Jira, and this step will update the status of the issue to `APPROVED INFRASTRUCTURE REQUEST`.
+
+Here we have:
+* to use the `${issue}` variable in the `Issue Id` field
+* to set the value `APPROVED INFRASTRUCTURE REQUEST` in the `New status` field
+
+![xlrelease image](img_052.png)
