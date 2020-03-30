@@ -183,3 +183,49 @@ The only difference will be in the values that we have passed to the parameters.
 ![xlrelease image](img_020.png)
 
 In this case we can see that the hosts we are creating for development and pre-production environments are smaller than the hosts we are creating for production. Except for this difference, the infrastructures created will be exactly the same for the three environments.
+
+# Summary of what we need
+
+Let's summarize what we have seen so far. In order to manage the creation of infrastructures with Terraform in XL Deploy we need:
+
+1. Terraform modules, versioned and stored either in the Terraform Registry or in a Git repository.
+
+<div style="text-align:center"><img src="img_021.png" /></div>
+
+2. Templates that are in charge of invoking these modules in their correct version.
+
+<div style="text-align:center"><img src="img_023.png" /></div>
+
+3. Registration of these templates in XL Deploy together with the parameters required by that version of the module.
+
+<div style="text-align:center"><img src="img_024.png" /></div>
+
+4. Configuration of the access to the host that contains the credentials of the Amazon account and the Terraform client.
+
+<div style="text-align:center"><img src="img_025.png" /></div>
+
+5. Configuration of a Terraform client for each project and environment in which we will configure where to store the 'Terraform state' file.
+
+<div style="text-align:center"><img src="img_026.png" /></div>
+
+6. And the creation of a deployment environment to which we will associate the Terraform client and a dictionary with the corresponding configuration.
+
+<div style="text-align:center"><img src="img_027.png" /></div>
+
+7. And let XL Deploy deploy. We would just have to say that I want to use version 2.0.0 of our module to provision the development environment for the 'calculator' project.
+
+<div style="text-align:center"><img src="img_028.png" /></div>
+
+# What have we achieved so far?
+
+We have already solved many of the problems we raised at the beginning.
+
+1. We already know what hosts to use to apply templates
+2. What credentials to use
+3. We know how and where to store the parameters for different environments
+4. We know where to store the 'Terraform state' file for each of our infrastructures
+5. We know the type of environment that we are provisioning because it is one of the parameters that I use to label the resources created in Amazon
+6. We also know some information about the infrastructure created, such as the IP address of the new hosts.
+7. We know how to deprovision an environment and remove it
+
+**But it is still not enough. Keep reading ...**
