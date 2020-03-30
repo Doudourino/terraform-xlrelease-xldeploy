@@ -1,36 +1,39 @@
-# ¿Cómo y desde dónde ejecuto las templates de Terraform?
-¿Cómo y desde dónde ejecuto las templates de Terraform pasando los parámetros necesarios y con los valores que hemos facilitado?
+# How to create the needed resources to apply the templates?
 
-De esto se va a encargar XL Deploy. Vamos a definir los CIs necesarios para poder hacer el despliegue de esta infraestructura con XL Deploy. Vamos a:
-* crear un directorio bajo Infrastructure de nombre Terraform. En este directorio daremos de alta los hosts que harán las ejecuciones de las templates invocando al comando `terraform apply ...`.
-* definir la máquina desde la que se ejecutarán las templates de Terraform (esa máquina tendrá que tener acceso a la clave pública que hemos informado en el campo public_key_path)
-* asignar cada máquina para provisionar un tipo de entorno determinado. Tendremos un host configurado con las claves AWS necesarias para provisionar los entornos de dev, otro host para provisionar los entornos de pre y otro para los entornos de pro.
-* crear un espacio/directorio dentro de esa máquina para ejecutar las templates de Terraform del proyecto. Es ahí donde se guardará el Terraform state. Será el 'workingDirectory'.
-* crear un directorio bajo 'Environments' para el proyecto de nombre infrastructure-project y un nuevo 'environment'
-* crear un diccionario con los valores de los parámetros
-* asociar el cliente de Terraform y el diccionario al entorno creado.
+How and from where do I execute the Terraform templates passing the necessary parameters and with the values that we have provided?
 
-Esta será nuestra segunda fase en XL Release.
+XL Deploy will take care of this. We are going to define the CIs necessary to be able to deploy this infrastructure with XL Deploy. We are going to:
+* create a directory under Infrastructure named `Terraform`.
+* create the host from which the Terraform templates will be executed
+* create the 'Terraform client'
+* create a directory under 'Environments' for the project named infrastructure-project and a new 'environment'
+* create a dictionary with the values we provided
+* associate the Terraform client and the dictionary to the created environment.
 
-## Creación de entorno
+This will be our second phase in XL Release.
 
-Vamos a crear una segunda fase en XL Release en la que vamos a crear los CIs necesarios en XL Deploy para poder desplegar nuestra infraestructura con un cliente de Terraform.
+## Environment creation
 
-![xlrelease image](img_055.png)
+We are going to create a second phase in XL Release in which the necessary CIs in XL Deploy will be created to be able to deploy our infrastructure with a Terraform client.
 
-### Paso 1: Creación de infraestructura base en XLD (XL Deploy CLI: Run Script from URL)
-*Para definir este step, es necesario crear un servidor XL Deploy CLI bajo 'Settings -> Shared configuration' o bajo la pestaña 'Configuration' dentro de la carpeta en la que se ubique la template.*
+![xlrelease image](img_045.png)
 
-Se invocará a la ejecución del script remoto `https://raw.githubusercontent.com/jclopeza/xlr-scripts/master/createXLDResourcesTerraformModuleJavaBddProject.py`
+### Step 1: Creation of infrastructure base in XLD (XL Deploy CLI: Run Script from URL)
+*To define this step, it is necessary to create an XL Deploy CLI under 'Settings -> Shared configuration' or under the 'Configuration' tab inside the folder where the template is located.*
 
-Este script se ejecutará con el CLI para la creación de los recursos necesarios en XLD.
+Script URL:
 
-Se pasarán las siguientes variables en el campo `options`:
+`https://raw.githubusercontent.com/jclopeza/xlr-scripts/master/createXLDResourcesTerraformModuleJavaBddProject.py`
+
+This script will run with the CLI to create the necessary resources in XLD.
+
+The following variables will be passed in the `options` field:
+
 ```
 ${environment} ${project_name} ${aws_region} ${instance_type} ${private_key_path} ${public_key_path}
 ```
 
-![xlrelease image](img_056.png)
+![xlrelease image](img_047.png)
 
 ### Paso 2: Validación de entorno en XLD  (Manual)
 Incluímos un paso para que se verifique que se ha creado el entorno de forma correcta en XL Deploy. Esta validación también se podría haber hecho de forma automática.

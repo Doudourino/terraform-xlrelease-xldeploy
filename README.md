@@ -145,5 +145,7 @@ We have to find a solution that **scales** and that responds to the problems we 
 * [Chapter 3:](chapter03/README.md) How to execute these templates?
 * [Chapter 4:](chapter04/README.md) How to rule the entire process?
 * [Chapter 5:](chapter05/README.md) How to get the parameters?
-* [Chapter 6:](chapter06/README.md) How to provision the new infrastructure?
-* [Chapter 7:](chapter07/README.md) How to notify that there is a new infrastructure available?
+* [Chapter 6:](chapter06/README.md) How to create the needed resources to apply the templates?
+* [Chapter 7:](chapter07/README.md) How do I start the execution?
+* [Chapter 8:](chapter08/README.md) How to provision the new infrastructure?
+* [Chapter 9:](chapter09/README.md) How to notify that there is a new infrastructure available?
