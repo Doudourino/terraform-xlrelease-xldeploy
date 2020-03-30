@@ -140,9 +140,9 @@ Therefore, to provision several environments (development, testing, production) 
 We have to find a solution that **scales** and that responds to the problems we have raised.
 
 ## You will find ...
-* [Chapter 1:](chapter01/README.md) Terraform templates
-* [Chapter 2:](chapter02/README.md) Where to store and execute these templates?
-* [Chapter 3:](chapter03/README.md) How to get the parameters?
+* [Chapter 1:](chapter01/README.md) Terraform templates and modules
+* [Chapter 2:](chapter02/README.md) Where to store these templates?
+* [Chapter 3:](chapter03/README.md) How to deploy and create a new infrastructure on AWS?
 * [Chapter 4:](chapter04/README.md) How and from where do I execute those templates?
 * [Chapter 5:](chapter05/README.md) How do I start the execution?
 * [Chapter 6:](chapter06/README.md) How to provision the new infrastructure?

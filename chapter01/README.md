@@ -1,4 +1,4 @@
-# Terraform templates
+# Terraform templates and modules
 This is the first thing we need.
 
 If we start working with Terraform, we will soon discover the modules and realize that it is the best way to reuse our work. As we improve our modules, we will be able to version them and we will always know exactly what source code we are using to create our infrastructure.
