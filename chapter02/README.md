@@ -1,4 +1,4 @@
-# Where to store and execute these templates?
+# Where to store these templates?
 First, I will need to create infrastructures on Amazon for different applications or projects, therefore, I will have an udm.Application (infrastructure application) for each project that I want to provision. For example, I will have an infrastructure application for the 'calculator' project (what it will actually do is provision the infrastructure for the development, pre-production and production environments for the 'calculator' project), another infrastructure application for the 'petportal' project, etc.
 
 ![xl image](img_001.png)

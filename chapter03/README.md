@@ -1,4 +1,4 @@
-# How to deploy and create a new infrastructure on AWS?
+# How to execute these templates?
 Well, we already have our application with the different versions referring to the different versions of the Terraform modules.
 
 Now we need to apply them somehow. We will need a host from which to execute the commands, an AWS account, a directory in which to store the 'Terraform state' file, etc.
