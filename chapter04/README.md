@@ -1,6 +1,6 @@
 # How to rule the entire process?
 
-We have already answered a lot of questions ... but it is still not enough. We still have things pending. For example:
+We have already answered a lot of questions ... but it is not enough yet. We still have things pending. For example:
 
 1. A way to ask, collect and store the parameters that you want to use to provision an environment.
 2. Govern this process, that is, request and register in some way the request for the creation of new infrastructures.

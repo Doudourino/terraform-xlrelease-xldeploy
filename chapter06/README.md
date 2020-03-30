@@ -1,95 +1,45 @@
-# ¿Cómo provisiono la nueva infraestructura creada?
-Tenemos creada nuestra infraestructura en Amazon (dos instancias EC2) y hemos creado dos nuevas máquinas en XL Deploy con las direcciones IP y demás información necesaria para acceder a ellas.
+# ¿Cómo y desde dónde ejecuto las templates de Terraform?
+¿Cómo y desde dónde ejecuto las templates de Terraform pasando los parámetros necesarios y con los valores que hemos facilitado?
 
-Ahora queremos instalar el middleware necesario en estas máquinas para poder ejecutar nuestras aplicaciones (tomcat, mysql-server, etc.).
+De esto se va a encargar XL Deploy. Vamos a definir los CIs necesarios para poder hacer el despliegue de esta infraestructura con XL Deploy. Vamos a:
+* crear un directorio bajo Infrastructure de nombre Terraform. En este directorio daremos de alta los hosts que harán las ejecuciones de las templates invocando al comando `terraform apply ...`.
+* definir la máquina desde la que se ejecutarán las templates de Terraform (esa máquina tendrá que tener acceso a la clave pública que hemos informado en el campo public_key_path)
+* asignar cada máquina para provisionar un tipo de entorno determinado. Tendremos un host configurado con las claves AWS necesarias para provisionar los entornos de dev, otro host para provisionar los entornos de pre y otro para los entornos de pro.
+* crear un espacio/directorio dentro de esa máquina para ejecutar las templates de Terraform del proyecto. Es ahí donde se guardará el Terraform state. Será el 'workingDirectory'.
+* crear un directorio bajo 'Environments' para el proyecto de nombre infrastructure-project y un nuevo 'environment'
+* crear un diccionario con los valores de los parámetros
+* asociar el cliente de Terraform y el diccionario al entorno creado.
 
-Sería deseable que los playbooks de Ansible que se utilizasen para el provisioning, estuviesen versionados y que tuviésemos la oportunidad de seleccionar qué versión de los playbooks es la que queremos utilizar para instalar el middleware en nuestras instancias EC2.
+Esta será nuestra segunda fase en XL Release.
 
-Esta será nuestra cuarta fase en XL Release.
+## Creación de entorno
 
-## Provisioning
+Vamos a crear una segunda fase en XL Release en la que vamos a crear los CIs necesarios en XL Deploy para poder desplegar nuestra infraestructura con un cliente de Terraform.
 
-Vamos a crear una cuarta fase en XL Release en la que vamos a provisionar nuestras instancias EC2 recién creadas.
+![xlrelease image](img_055.png)
 
-![xlrelease image](img_063.png)
+### Paso 1: Creación de infraestructura base en XLD (XL Deploy CLI: Run Script from URL)
+*Para definir este step, es necesario crear un servidor XL Deploy CLI bajo 'Settings -> Shared configuration' o bajo la pestaña 'Configuration' dentro de la carpeta en la que se ubique la template.*
 
-### Paso 1: Obtención de las versiones disponibles de playbooks (Script: Jython Script)
-En el siguiente repositorio Git, tenemos los playbooks de Ansible con los distintos roles que se necesitan para provisionar las nuevas instancias EC2 `https://github.com/jclopeza/playbooks-provisioning`
+Se invocará a la ejecución del script remoto `https://raw.githubusercontent.com/jclopeza/xlr-scripts/master/createXLDResourcesTerraformModuleJavaBddProject.py`
 
-En este repositorio hay varias versiones disponibles. El primer paso será obtener todas las versiones disponibles. Lo conseguimos con el siguiente código:
+Este script se ejecutará con el CLI para la creación de los recursos necesarios en XLD.
+
+Se pasarán las siguientes variables en el campo `options`:
 ```
-import json
-gitServer = 'https://api.github.com'
-request = HttpRequest({'url': gitServer})
-response = request.get('/repos/jclopeza/playbooks-provisioning/tags', contentType='application/json')
-listTags = []
-data = json.loads(response.response)
-for i in data:
-    listTags = listTags + [i['name']]
-releaseVariables['list_tags'] = listTags
-```
-
-![xlrelease image](img_064.png)
-
-### Paso 2: Selección de versión de provisioning (User Input)
-En este paso se muestran todas las versiones existentes en el repositorio Git para que el usuario seleccione cuál desea utilizar para provisionar las instancias EC2.
-
-Las versiones se obtuvieron en el paso anterior.
-
-![xlrelease image](img_065.png)
-
-La selección la almacenamos en la variable `${tag_ansible_selected}`
-
-### Paso 3: Checkout a la versión de los playbooks seleccionada (Remote Script: Unix)
-En este paso clonamos el repositorio Git con los playbooks de Ansible y hacemos checkout a la versión previamente seleccionada.
-```
-cd /tmp && rm -fr playbooks-provisioning
-git clone https://github.com/jclopeza/playbooks-provisioning.git
-cd playbooks-provisioning
-git checkout ${tag_ansible_selected}
+${environment} ${project_name} ${aws_region} ${instance_type} ${private_key_path} ${public_key_path}
 ```
 
-![xlrelease image](img_066.png)
+![xlrelease image](img_056.png)
 
-### Paso 4: Provisioning de la instancia-front/bdd EC2 en Amazon (Ansible: Run Playbook)
+### Paso 2: Validación de entorno en XLD  (Manual)
+Incluímos un paso para que se verifique que se ha creado el entorno de forma correcta en XL Deploy. Esta validación también se podría haber hecho de forma automática.
 
-![xlrelease image](img_067.png)
+`Environments/infrastructure-${project_name}/infrastructure-${project_name}-${environment}/infrastructure-${project_name}-${environment}`
 
-*Para definir este step, es necesario crear un servidor de tipo Unix Host remoto que será desde el que se ejecuten los playbooks, sería la máquina de control de Ansible. Bajo 'Settings -> Shared configuration' o bajo la pestaña 'Configuration' dentro de la carpeta en la que se ubique la template se debe crear un Unix Host.*
+![xlrelease image](img_057.png)
 
-Tenemos los playbooks en el directorio `/tmp/playbooks-provisioning`. Tenemos que provisionar la instancia 'front' y la instancia 'bdd'. Habrá que ejecutar para la parte front:
-* Playbook Path: `/tmp/playbooks-provisioning/playbook-front.yml`
-* Additional command line parameters: `-u ubuntu -i "${ip_front}," --private-key "${private_key_path}" --ssh-common-args="-o StrictHostKeyChecking=no" -e "public_key_path=${public_key_path}"`
+### Paso 3: Validación de solicitud y aprobación del equipo de seguridad (Gate)
+Incluímos una validación adicional que sólo tendrá lugar si el entorno seleccionado es el de producción.
 
-Y para la parte bdd:
-* Playbook Path: `/tmp/playbooks-provisioning/playbook-bdd.yml`
-* Additional command line parameters: `-u ubuntu -i "${ip_bdd}," --private-key "${private_key_path}" --ssh-common-args="-o StrictHostKeyChecking=no"`
-
-![xlrelease image](img_068.png)
-
-### Paso 5: Creación de entorno en XLD (XL Deploy CLI: Run Script from URL)
-Ya tenemos nuestras instancias EC2 con todo el middleware instalado. Ahora vamos a informar a XL Deploy de este nuevo middleware para que podamos ser capaces de desplegar nuevas aplicaciones en él.
-
-Se ejecutará:
-* el script: `https://raw.githubusercontent.com/jclopeza/xlr-scripts/master/createXLDResourcesTerraformModuleJavaBddProjectContainers.py`
-* con las opciones: `${environment} ${project_name} ${ip_front} ${ip_bdd}`
-
-Esto creará nuevos containers bajo los hosts creados en XL Deploy:
-* axis2.Deployer
-* tomcat.Server
-* tomcat.VirtualHost
-* smoketest.Runner
-* sql.MySqlClient
-
-Creará un nuevo diccionario:
-* ip_front
-* ip_bdd
-
-Creará un nuevo entorno con los containers y el diccionario asociado.
-
-![xlrelease image](img_069.png)
-
-### Paso 6: Notificación a desarrollo de nuevo entorno disponible (Notification)
-Notificación al equipo de desarrollo de que se ha creado el nuevo entorno para que puedan desplegarse las aplicaciones correspondientes.
-
-![xlrelease image](img_070.png)
+![xlrelease image](img_058.png)

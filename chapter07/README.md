@@ -1,74 +1,39 @@
-# ¿Cómo notificamos la nueva infraestructura creada?
-Tenemos nuestra infraestructura creada en Amazon y ahora quiero notificar la disponibilidad de la misma, generar gráficos, indicar las versiones de las templates de Terraform con la que se ha generados y la versión de los playbooks de Ansible utilizados, etc.
+# ¿Cómo inicio la ejecución?
+¿Cómo inicio la ejecución de las templates de Terraform?
 
-Esta será nuestra quinta fase en XL Release.
+Ya tenemos todo lo necesario para iniciar este despliegue. Tenemos el Deployment Package en XL Deploy y el 'environment' que acabamos de crear de forma dinámica (configurado con un cliente de Terraform y un diccionario con todos los parámetros que se tienen que aplicar).
 
-## Comunicación y validación
+Esta será nuestra tercera fase en XL Release.
 
-Vamos a crear una quinta fase en XL Release en la que vamos a generar un informe con la infraestructura creada y vamos a darlo a conocer.
+## Creación de infraestructura
 
-![xlrelease image](img_071.png)
+Vamos a crear una tercera fase en XL Release en la que vamos a lanzar la ejecución de las templates.
 
-### Paso 1: Generación de gráfico con la infraestructura (Remote Script: Unix)
-Vamos a generar un gráfico con la estructura creada. Para ello ejecutamos el siguiente script:
-```
-#!/bin/bash
-TERRAFORMDIR=/var/opt/xebialabs/terraform-states/${project_name}-${environment}
-HTMLDIR=/var/www/html/${project_name}-${environment}
-[ -d $TERRAFORMDIR ] || exit 1
-[ -d $HTMLDIR ] || mkdir -p $HTMLDIR
-[ -f $HTMLDIR/graph.svg ] && rm $HTMLDIR/graph.svg
-[ -f $HTMLDIR/index.html ] && rm $HTMLDIR/index.html
-cd $TERRAFORMDIR
-cd -- "$(find . -name terraform.tfstate -type f -printf '%h' -quit)"
-terraform graph | dot -Tsvg > $HTMLDIR/graph.svg
-```
+![xlrelease image](img_060.png)
 
-![xlrelease image](img_072.png)
+### Paso 1: Creación de infraestructura en AWS (XL Deploy: Deploy)
+Se trata de indicar qué queremos desplegar y dónde, es decir, facilitar el Deployment Package y el entorno de destino o environment.
+Este script se ejecutará con el CLI para la creación de los recursos necesarios en XLD.
 
-### Paso 2: Generación de html (Remote Script: Unix)
-En este paso vamos a ejecutar un script en Python que se va a encargar de generar un HTML con la información relacionada con la infraestructura.
+* En `package` tendremos que indicar la versión que queremos desplegar: `${version_infrastructure_selected}` (depende del nombre de la variable que hayamos definido)
+* En `environment` el entorno que hemos creado dinámicamente en el paso anterior: `Environments/infrastructure-${project_name}/infrastructure-${project_name}-${environment}/infrastructure-${project_name}-${environment}`
 
-Ejecutaremos el siguiente script:
-```
-python generateTerraformHtmlReport.py ${environment} ${project_name} ${aws_region} ${instance_type} ${version_infrastructure_selected} ${tag_ansible_selected}
-```
+![xlrelease image](img_061.png)
 
-![xlrelease image](img_073.png)
+### Paso 2: Obtención de las IPs remotas (XL Deploy CI: Get CI string property)
+Cuando se crea la infraestructura con XL Deploy y Terraform, se crean y registran también dos CIs del tipo overthere.SshHost de forma automática en XL Deploy con la información necesaria para acceder a las nuevas instancias EC2 creadas. Esto es, la dirección IP, sistema operativo, usuario y la ubicación de la clave privada para acceder a ellas.
 
-Bajo `Remote Path` tenemos que indicar el directorio en el que se encuentra el script `generateTerraformHtmlReport.py`. Este script está disponible en la siguiente dirección:
+*La clave privada que se facilita como parámetro en la primera fase de XL Release, debe ser accesible desde el servidor en el que se ejecute XL Deploy.*
 
-`https://raw.githubusercontent.com/jclopeza/xlr-scripts/master/generateTerraformHtmlReport.py`
+Con esta tarea, lo que vamos es a recuperar esas direcciones IP para luego poder hacer el provisioning de esas dos instancias EC2.
 
-Se encargará de procesar una template y ubicarla en un directorio accesible por un servidor `Nginx`.
+Sabemos el nombre que van a tener los hosts en XL Deploy (el nombre lo indicamos en las templates), por tanto es muy fácil acceder a los atributos de los mismos.
 
-### Paso 3: Validación de conexión a hosts remotos (Manual)
-En este paso vamos a validar que podemos establecer conexión a las instancias EC2 creadas en Amazon desde los CIs de infraestructura que se crearon en XL Deploy de tipo overthere.SshHost
+Nombre de los CI:
+* Infrastructure/${project_name}-${environment}-front
+* Infrastructure/${project_name}-${environment}-bdd
 
-![xlrelease image](img_074.png)
+Property name:
+* address *(en ambos casos)*
 
-### Paso 4: Infraestructura creada en AWS (Notification)
-En este último paso, enviaremos un correo electrónico con la información de la infraestructura creada y un enlace al report HTML generado en el paso anterior.
-
-El contenido del mensaje es el siguiente:
-```
-### Infraestructura provisionada para el proyecto ${project_name} y entorno ${environment}
-
-Se ha creado nueva infraestructura en AWS. Recuerde que:
-
-* Debe habilitar la monitorización
-* Debe establecer alertas de consumo
-* Debe notificar cualquier anomalía o corte de servicio a la dirección sistemas@gmail.com
-
-Estos son los datos relacionados con la infraestructura:
-
-1. **Environment:** ${environment}
-2. **Proyecto:** ${project_name}
-3. **Región AWS:** ${aws_region}
-4. **Tipo de instancias:** ${instance_type}
-5. **Claves pública y privada:** ${public_key_path} y ${private_key_path}
-
-También puedes consultar el [gráfico de la estructura creada](http://localhost/${project_name}-${environment}).
-```
-
-![xlrelease image](img_075.png)
+![xlrelease image](img_062.png)
