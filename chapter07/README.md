@@ -34,7 +34,6 @@ Output properties:
 
 On this parameter, we set the default value to '-'.
 
-
 ### Step 1.2: Infrastructure creation on AWS (XL Deploy: Deploy)
 
 It is about indicating what we want to deploy and where, that is, facilitating the Deployment Package and the target environment.
