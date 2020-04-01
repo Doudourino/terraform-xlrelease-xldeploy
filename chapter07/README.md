@@ -134,3 +134,61 @@ These steps will be executed only if we choose the option "Exeucte rollback and 
 
 ![xlrelease image](img_074.png)
 
+### Step 5.1: Return to the previous version on AWS (XL Deploy: Deploy)
+
+This step will be executed only if we already had a version deployed in XL Deploy (before deploying the new one). In this case, we should deploy the previous version.
+
+![xlrelease image](img_076.png)
+
+### Step 5.1.1: Return to the previous version on AWS (XL Deploy: Deploy)
+
+We have to use the next parameters:
+* **Package**: ${last_version_deployed}
+* **Environment**: Environments/infrastructure-${project_name}/infrastructure-${project_name}-${environment}/infrastructure-${project_name}-${environment}
+
+![xlrelease image](img_075.png)
+
+### Step 5.2: Infrastructure removal on AWS (XL Deploy: Undeploy)
+
+This is also a conditional step. It will only be executed if there wasn't any version deployed before updating the environment.
+
+We have to use the next parameters:
+* **Deployed Application**: Environments/infrastructure-${project_name}/infrastructure-${project_name}-${environment}/infrastructure-${project_name}-${environment}/infrastructure-${project_name}
+
+![xlrelease image](img_077.png)
+
+![xlrelease image](img_078.png)
+
+### Step 5.3: Removed infrastructure (Core: Gate)
+
+Manual step to decide what to do with the provisioning process.
+
+![xlrelease image](img_079.png)
+
+### Step 6: Install python on remote hosts (Core: Sequential Group)
+
+Now we have to install Python on the newly created hosts.
+
+![xlrelease image](img_080.png)
+
+### Step 6.1: Install python on front host (Remote Script: Unix)
+
+We can use the next script to install python on remote hosts.
+
+```
+ssh -o "StrictHostKeyChecking=no" ubuntu@${ip_front} -i ${private_key_path} "sudo apt-get update && sudo apt-get -y install python-minimal"
+```
+
+This script must be executed in a host with the private key `${private_key_path}` installed.
+
+![xlrelease image](img_081.png)
+
+### Step 6.2: Install python on bdd host (Remote Script: Unix)
+
+This step is the same as the previous one. This would be the script:
+
+```
+ssh -o "StrictHostKeyChecking=no" ubuntu@${ip_bdd} -i ${private_key_path} "sudo apt-get update && sudo apt-get -y install python-minimal"
+```
+
+![xlrelease image](img_082.png)
