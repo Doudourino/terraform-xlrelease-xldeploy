@@ -1,47 +1,66 @@
-# ¿Cómo provisiono la nueva infraestructura creada?
-Tenemos creada nuestra infraestructura en Amazon (dos instancias EC2) y hemos creado dos nuevas máquinas en XL Deploy con las direcciones IP y demás información necesaria para acceder a ellas.
+# How to provision the new infrastructure?
 
-Ahora queremos instalar el middleware necesario en estas máquinas para poder ejecutar nuestras aplicaciones (tomcat, mysql-server, etc.).
+We have created our infrastructure in Amazon (two EC2 instances) and we have created two new hosts in XL Deploy with the IP addresses and other information necessary to access them.
 
-Sería deseable que los playbooks de Ansible que se utilizasen para el provisioning, estuviesen versionados y que tuviésemos la oportunidad de seleccionar qué versión de los playbooks es la que queremos utilizar para instalar el middleware en nuestras instancias EC2.
+Now we want to install the necessary middleware on these hosts to be able to run our applications (tomcat, mysql-server, etc.).
 
-Esta será nuestra cuarta fase en XL Release.
+It would be nice if the Ansible playbooks that we are goint to use for provisioning were versioned and that we had the opportunity to select which version of the playbooks we want to use to install the middleware on our EC2 instances.
+
+This will be our fourth phase in XL Release.
 
 ## Provisioning
 
-Vamos a crear una cuarta fase en XL Release en la que vamos a provisionar nuestras instancias EC2 recién creadas.
+We are going to create a fourth phase in XL Release in which we are going to provision our newly created EC2 instances.
 
-![xlrelease image](img_063.png)
+![xlrelease image](img_084.png)
 
-### Paso 1: Obtención de las versiones disponibles de playbooks (Script: Jython Script)
-En el siguiente repositorio Git, tenemos los playbooks de Ansible con los distintos roles que se necesitan para provisionar las nuevas instancias EC2 `https://github.com/jclopeza/playbooks-provisioning`
+![xlrelease image](img_085.png)
 
-En este repositorio hay varias versiones disponibles. El primer paso será obtener todas las versiones disponibles. Lo conseguimos con el siguiente código:
+### Step 1: Selection of Ansible playbook version to run (Core: Sequential Group)
+
+![xlrelease image](img_086.png)
+
+### Step 1.1: Obtención de las versiones disponibles de playbooks (Script: Jython Script)
+
+In the following Git repository, we have the Ansible playbooks with the different roles that are needed to provision the new EC2 instances `https://github.com/jclopeza/playbooks-provisioning`
+
+Different versions are available in this repository. The first step will be to get all available versions. We do it with the following code:
 ```
+import urllib2
 import json
-gitServer = 'https://api.github.com'
-request = HttpRequest({'url': gitServer})
-response = request.get('/repos/jclopeza/playbooks-provisioning/tags', contentType='application/json')
+import base64
+req = urllib2.Request('https://api.github.com/repos/jclopeza/playbooks-provisioning/tags')
 listTags = []
-data = json.loads(response.response)
+req.add_header('Content-Type','application/json')
+response = urllib2.urlopen(req)
+data = json.loads(response.read())
 for i in data:
     listTags = listTags + [i['name']]
 releaseVariables['list_tags'] = listTags
 ```
 
-![xlrelease image](img_064.png)
+![xlrelease image](img_087.png)
 
-### Paso 2: Selección de versión de provisioning (User Input)
-En este paso se muestran todas las versiones existentes en el repositorio Git para que el usuario seleccione cuál desea utilizar para provisionar las instancias EC2.
+We store the available versions in the variable `list_tags`
 
-Las versiones se obtuvieron en el paso anterior.
+![xlrelease image](img_088.png)
 
-![xlrelease image](img_065.png)
+### Step 1.2: Provisioning version selection (User Input)
 
-La selección la almacenamos en la variable `${tag_ansible_selected}`
+This step shows all the existing versions in the Git repository for the user to select which one they want to use to provision EC2 instances.
 
-### Paso 3: Checkout a la versión de los playbooks seleccionada (Remote Script: Unix)
-En este paso clonamos el repositorio Git con los playbooks de Ansible y hacemos checkout a la versión previamente seleccionada.
+The versions were obtained in the previous step.
+
+![xlrelease image](img_089.png)
+
+The selection is stored in the variable `${tag_ansible_selected}`
+
+![xlrelease image](img_090.png)
+
+### Step 1.3: Checkout to the selected version of the playbooks (Remote Script: Unix)
+
+In this step we clone the Git repository with Ansible playbooks and checkout the previously selected version.
+
 ```
 cd /tmp && rm -fr playbooks-provisioning
 git clone https://github.com/jclopeza/playbooks-provisioning.git
@@ -49,7 +68,7 @@ cd playbooks-provisioning
 git checkout ${tag_ansible_selected}
 ```
 
-![xlrelease image](img_066.png)
+![xlrelease image](img_091.png)
 
 ### Paso 4: Provisioning de la instancia-front/bdd EC2 en Amazon (Ansible: Run Playbook)
 
