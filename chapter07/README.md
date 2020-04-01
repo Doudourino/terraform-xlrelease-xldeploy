@@ -1,17 +1,30 @@
-# ¿Cómo inicio la ejecución?
-¿Cómo inicio la ejecución de las templates de Terraform?
+# How do I start the execution?
+How do I start the execution of the Terraform templates?
 
-Ya tenemos todo lo necesario para iniciar este despliegue. Tenemos el Deployment Package en XL Deploy y el 'environment' que acabamos de crear de forma dinámica (configurado con un cliente de Terraform y un diccionario con todos los parámetros que se tienen que aplicar).
+We already have everything necessary to start this deployment. We have the Deployment Package in XL Deploy and the 'environment' that we just created dynamically (configured with a Terraform client and a dictionary with all the parameters that have to be applied).
 
-Esta será nuestra tercera fase en XL Release.
+This will be our third phase in XL Release.
 
-## Creación de infraestructura
+## INFRASTRUCTURE CREATION
 
-Vamos a crear una tercera fase en XL Release en la que vamos a lanzar la ejecución de las templates.
+We are going to create a third phase in XL Release in which we are going to launch the execution of the templates.
+
+![xlrelease image](img_058.png)
+
+![xlrelease image](img_059.png)
 
 ![xlrelease image](img_060.png)
 
-### Paso 1: Creación de infraestructura en AWS (XL Deploy: Deploy)
+### Step 1: Creation of infrastructure in ${environment} (Core: Sequential Group)
+
+### Step 1.1: Get the latest version deployed (XL Deploy: Get Last Deployed Version)
+
+We have to get the latest version deployed in case we later decide to rollback the applied changes.
+
+![xlrelease image](img_061.png)
+
+
+### Step 1.2: Creación de infraestructura en AWS (XL Deploy: Deploy)
 Se trata de indicar qué queremos desplegar y dónde, es decir, facilitar el Deployment Package y el entorno de destino o environment.
 Este script se ejecutará con el CLI para la creación de los recursos necesarios en XLD.
 
