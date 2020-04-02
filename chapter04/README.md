@@ -23,10 +23,6 @@ We can see that the process I have designed has several phases (which are the di
 
 Manual tasks can be assigned to different people or teams who will be responsible for carrying them out. As you can see, it is a collaborative tool in which all the actors involved in the release intervene, which provides a global, end-to-end vision of the processes followed by the organization and which will then also allow us to improve and optimize globally.
 
+To follow this process, starting from this model or template, I will have to create a release that will be as an instantiation of this template. There are several ways to create a release and in our case, we will do it from Jira, which will be where you register the request for a new infrastructure and the entry point that will trigger the entire process.
+
 **Let's detail this template and let's see how to rule the process of creating a new infrastructure on the cloud for a given environment and project.**
-
-
-
-ESTO LO TENEMOS QUE PONER AL FINAL CUANDO EMPIECE LA DEMO
----------------------------------------------------------
-To do this, starting from this model or template, I will have to create a release that will be as an instantiation of this template. There are several ways to create a release and in our case, we will do it from Jira, which will be where you register the request for a new infrastructure and the entry point that will trigger the entire process.
