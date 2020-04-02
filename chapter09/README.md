@@ -1,16 +1,24 @@
-# ¿Cómo notificamos la nueva infraestructura creada?
-Tenemos nuestra infraestructura creada en Amazon y ahora quiero notificar la disponibilidad de la misma, generar gráficos, indicar las versiones de las templates de Terraform con la que se ha generados y la versión de los playbooks de Ansible utilizados, etc.
+# How to notify that there is a new infrastructure available?
 
-Esta será nuestra quinta fase en XL Release.
+We have our infrastructure created on Amazon and now I want to notify its availability, generate graphics, indicate the versions of the Terraform templates with which they have been generated, the version of the Ansible playbooks used, etc.
 
-## Comunicación y validación
+This will be our fifth phase in XL Release.
 
-Vamos a crear una quinta fase en XL Release en la que vamos a generar un informe con la infraestructura creada y vamos a darlo a conocer.
+## Communication and Validation
 
-![xlrelease image](img_071.png)
+We are going to create a fifth phase in XL Release in which we are going to generate a report with the created infrastructure and we are going to make it known.
 
-### Paso 1: Generación de gráfico con la infraestructura (Remote Script: Unix)
-Vamos a generar un gráfico con la estructura creada. Para ello ejecutamos el siguiente script:
+![xlrelease image](img_098.png)
+
+### Step 1: Report generation (Core: Sequential Group)
+
+Let's generate some reports about the infrastructure.
+
+![xlrelease image](img_099.png)
+
+### Step 1.1: Chart generation with infrastructure (Remote Script: Unix)
+We are going to generate a graph with the structure created. To do this we run the following script:
+
 ```
 #!/bin/bash
 TERRAFORMDIR=/var/opt/xebialabs/terraform-states/${project_name}-${environment}
@@ -24,51 +32,87 @@ cd -- "$(find . -name terraform.tfstate -type f -printf '%h' -quit)"
 terraform graph | dot -Tsvg > $HTMLDIR/graph.svg
 ```
 
-![xlrelease image](img_072.png)
+![xlrelease image](img_101.png)
 
-### Paso 2: Generación de html (Remote Script: Unix)
-En este paso vamos a ejecutar un script en Python que se va a encargar de generar un HTML con la información relacionada con la infraestructura.
+You need Nginx up and running and a virtual host pointing at `/var/www/html/` to serve the reports.
 
-Ejecutaremos el siguiente script:
+### Step 1.2: HTML generation (Remote Script: Unix)
+
+In this step we are going to execute a script in Python that is going to be in charge of generating an HTML with the information related to the infrastructure.
+
+We will execute the next script:
+
 ```
-python generateTerraformHtmlReport.py ${environment} ${project_name} ${aws_region} ${instance_type} ${version_infrastructure_selected} ${tag_ansible_selected}
+python3 generateTerraformHtmlReport.py ${environment} ${project_name} ${aws_region} ${instance_type} ${version_infrastructure_selected} ${tag_ansible_selected}
 ```
 
-![xlrelease image](img_073.png)
+![xlrelease image](img_102.png)
 
-Bajo `Remote Path` tenemos que indicar el directorio en el que se encuentra el script `generateTerraformHtmlReport.py`. Este script está disponible en la siguiente dirección:
+Under `Remote Path` we have to indicate the directory where the `generateTerraformHtmlReport.py` script is located. This script can be found here:
 
 `https://raw.githubusercontent.com/jclopeza/xlr-scripts/master/generateTerraformHtmlReport.py`
 
-Se encargará de procesar una template y ubicarla en un directorio accesible por un servidor `Nginx`.
+It will process a template and place it in a directory accessible by a `Nginx` server.
 
-### Paso 3: Validación de conexión a hosts remotos (Manual)
-En este paso vamos a validar que podemos establecer conexión a las instancias EC2 creadas en Amazon desde los CIs de infraestructura que se crearon en XL Deploy de tipo overthere.SshHost
 
-![xlrelease image](img_074.png)
+### Step 2: Status updated to Review (ServiceNow: Update Change Request)
 
-### Paso 4: Infraestructura creada en AWS (Notification)
-En este último paso, enviaremos un correo electrónico con la información de la infraestructura creada y un enlace al report HTML generado en el paso anterior.
+This step will update the status of the change request in ServiceNow to `Review`.
 
-El contenido del mensaje es el siguiente:
+We have to use the next parameters:
+* **State**: Review
+* **Sys Id**: ${sysId-changerequest-snow}
+
+Output properties:
+* **Number**: ${number-changerequest-snow}
+
+![xlrelease image](img_103.png)
+
+
+### Step 3: Validation and review of the infrastructure created (Manual)
+
+In this step we are going to validate that we can establish connection to the EC2 instances created in Amazon from the infrastructure CIs that were created in XL Deploy of type overthere.SshHost
+
+![xlrelease image](img_104.png)
+
+### Step 4: Infrastructure built on AWS (Core: Notification)
+In this second to last step, we will send an email with the information of the created infrastructure and a link to the HTML report generated in the previous step.
+
+The content of the message is as follows:
+
 ```
-### Infraestructura provisionada para el proyecto ${project_name} y entorno ${environment}
+### Provisioned infrastructure for project ${project_name} and environment ${environment}
 
-Se ha creado nueva infraestructura en AWS. Recuerde que:
+New infrastructure has been created on AWS. Remember that:
 
-* Debe habilitar la monitorización
-* Debe establecer alertas de consumo
-* Debe notificar cualquier anomalía o corte de servicio a la dirección sistemas@gmail.com
+* Must enable monitoring
+* You must set consumption alerts
+* You must notify any anomaly or service outage to the address Sistemas@gmail.com
 
-Estos son los datos relacionados con la infraestructura:
+These are the data related to infrastructure:
 
 1. **Environment:** ${environment}
-2. **Proyecto:** ${project_name}
-3. **Región AWS:** ${aws_region}
-4. **Tipo de instancias:** ${instance_type}
-5. **Claves pública y privada:** ${public_key_path} y ${private_key_path}
+2. **Project:** ${project_name}
+3. **AWS Region:** ${aws_region}
+4. **Type of instances:** ${instance_type}
+5. **Public and private keys:** ${public_key_path} and ${private_key_path}
 
-También puedes consultar el [gráfico de la estructura creada](http://localhost/${project_name}-${environment}).
+You can also consult the [graphic of the created structure](http://localhost/${project_name}-${environment}).
 ```
 
-![xlrelease image](img_075.png)
+![xlrelease image](img_105.png)
+
+### Step 5: Status updated to Closed (ServiceNow: Update Change Request)
+
+This step will update the status of the change request in ServiceNow to `Closed`.
+
+We have to use the next parameters:
+* **State**: Closed
+* **Sys Id**: ${sysId-changerequest-snow}
+* **Close Code**: successful
+* **Close Notes**: Environment of type ${environment} provisioned for project ${project_name}
+
+Output properties:
+* **Number**: ${number-changerequest-snow}
+
+![xlrelease image](img_106.png)
