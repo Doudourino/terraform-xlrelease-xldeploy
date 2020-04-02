@@ -70,45 +70,72 @@ git checkout ${tag_ansible_selected}
 
 ![xlrelease image](img_091.png)
 
-### Paso 4: Provisioning de la instancia-front/bdd EC2 en Amazon (Ansible: Run Playbook)
+### Step 2: Hosts provisioning (Core: Parallel Group)
 
-![xlrelease image](img_067.png)
+Now we run the playbooks to provision the new instances.
 
-*Para definir este step, es necesario crear un servidor de tipo Unix Host remoto que será desde el que se ejecuten los playbooks, sería la máquina de control de Ansible. Bajo 'Settings -> Shared configuration' o bajo la pestaña 'Configuration' dentro de la carpeta en la que se ubique la template se debe crear un Unix Host.*
+![xlrelease image](img_092.png)
 
-Tenemos los playbooks en el directorio `/tmp/playbooks-provisioning`. Tenemos que provisionar la instancia 'front' y la instancia 'bdd'. Habrá que ejecutar para la parte front:
+
+### Step 2.1: Provisioning the front-EC2 host on Amazon (Ansible: Run Playbook)
+
+*To define this step, it is necessary to create a remote Unix Host type server that will be the one from which the playbooks are run, it would be the Ansible control machine. Under 'Settings -> Shared configuration' or under the 'Configuration' tab within the folder where the template is located, a Unix Host must be created.*
+
+We have the playbooks in the `/tmp/playbooks-provisioning` directory and to provision the 'front' instance.
+
+We will have to use the next parameters:
+
 * Playbook Path: `/tmp/playbooks-provisioning/playbook-front.yml`
 * Additional command line parameters: `-u ubuntu -i "${ip_front}," --private-key "${private_key_path}" --ssh-common-args="-o StrictHostKeyChecking=no" -e "public_key_path=${public_key_path}"`
 
-Y para la parte bdd:
+
+![xlrelease image](img_094.png)
+
+### Step 2.2: Provisioning the EC2-bdd host on Amazon (Ansible: Run Playbook)
+
+We have the playbooks in the `/tmp/playbooks-provisioning` directory and to provision the 'bdd' instance.
+
+We will have to use the next parameters:
+
 * Playbook Path: `/tmp/playbooks-provisioning/playbook-bdd.yml`
 * Additional command line parameters: `-u ubuntu -i "${ip_bdd}," --private-key "${private_key_path}" --ssh-common-args="-o StrictHostKeyChecking=no"`
 
-![xlrelease image](img_068.png)
+![xlrelease image](img_095.png)
 
-### Paso 5: Creación de entorno en XLD (XL Deploy CLI: Run Script from URL)
-Ya tenemos nuestras instancias EC2 con todo el middleware instalado. Ahora vamos a informar a XL Deploy de este nuevo middleware para que podamos ser capaces de desplegar nuevas aplicaciones en él.
 
-Se ejecutará:
-* el script: `https://raw.githubusercontent.com/jclopeza/xlr-scripts/master/createXLDResourcesTerraformModuleJavaBddProjectContainers.py`
-* con las opciones: `${environment} ${project_name} ${ip_front} ${ip_bdd}`
+### Step 3: Creation of environment on XLD (XL Deploy CLI: Run Script from URL)
 
-Esto creará nuevos containers bajo los hosts creados en XL Deploy:
+We already have our EC2 instances with all the middleware installed. Now we are going to let XL Deploy be aware of this new middleware so that we can be able to deploy new applications on it.
+
+We will have to use the next parameters:
+
+* Script Url: `https://raw.githubusercontent.com/jclopeza/xlr-scripts/master/createXLDResourcesTerraformModuleJavaBddProjectContainers.py`
+* Options: `${environment} ${project_name} ${ip_front} ${ip_bdd}`
+
+This will create new containers under the hosts created in XL Deploy:
 * axis2.Deployer
 * tomcat.Server
 * tomcat.VirtualHost
 * smoketest.Runner
 * sql.MySqlClient
 
-Creará un nuevo diccionario:
+And it will create a new dictionary:
 * ip_front
 * ip_bdd
 
-Creará un nuevo entorno con los containers y el diccionario asociado.
+It will also create a new environment with the containers and the associated dictionary.
 
-![xlrelease image](img_069.png)
+![xlrelease image](img_096.png)
 
-### Paso 6: Notificación a desarrollo de nuevo entorno disponible (Notification)
-Notificación al equipo de desarrollo de que se ha creado el nuevo entorno para que puedan desplegarse las aplicaciones correspondientes.
+### Step 4: Notification new infrastructure available (Slack: Notification)
 
-![xlrelease image](img_070.png)
+*To define this step, it is necessary to create a Slack Server. Under 'Settings -> Shared configuration' or under the 'Configuration' tab within the folder where the template is located.*
+
+Notification to the slack channel that the new environment has been created so that the corresponding applications can be deployed.
+
+We will have to use the next parameters:
+
+* Channel: `the Slack channel name`
+* Message: `Infrastructure created for project ${project_name} and environment ${environment}`
+
+![xlrelease image](img_097.png)
