@@ -20,7 +20,7 @@ We are going to create a fourth phase in XL Release in which we are going to pro
 
 ![xlrelease image](img_086.png)
 
-### Step 1.1: Obtención de las versiones disponibles de playbooks (Script: Jython Script)
+### Step 1.1: Getting available versions of playbooks (Script: Jython Script)
 
 In the following Git repository, we have the Ansible playbooks with the different roles that are needed to provision the new EC2 instances `https://github.com/jclopeza/playbooks-provisioning`
 
